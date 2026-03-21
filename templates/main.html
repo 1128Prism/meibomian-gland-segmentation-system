@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="PrismIf">
+    <title>睑板腺在线分割处理系统</title>
+    <!-- Preloader -->
+    <style>
+        @keyframes hidePreloader {
+            0% {
+                width: 100%;
+                height: 100%;
+            }
+
+            100% {
+                width: 0;
+                height: 0;
+            }
+        }
+
+        body > div.preloader {
+            position: fixed;
+            background: white;
+            width: 100%;
+            height: 100%;
+            z-index: 1071;
+            opacity: 0;
+            transition: opacity .5s ease;
+            overflow: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body:not(.loaded) > div.preloader {
+            opacity: 1;
+        }
+
+        body:not(.loaded) {
+            overflow: hidden;
+        }
+
+        body.loaded > div.preloader {
+            animation: hidePreloader .5s linear .5s forwards;
+        }
+
+        .mb-original {
+            display: block;
+            width: 100%;
+            height: auto;
+            z-index: 1;
+        }
+
+        .mb-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            mix-blend-mode: overlay;
+            clip-path: inset(0 100% 0 0);
+            animation: scanMask 4s linear infinite;
+        }
+
+        @keyframes scanMask {
+            0% {
+                clip-path: inset(0 100% 0 0);
+            }
+            100% {
+                clip-path: inset(0 0% 0 0);
+            }
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(
+                    to bottom,
+                    transparent,
+                    #00aaff,
+                    transparent
+            );
+            animation: scanLineMove 4s linear infinite;
+            z-index: 3;
+            box-shadow:0 0 10px #00aaff;
+        }
+
+        @keyframes scanLineMove {
+
+            0% {
+                left: 0;
+            }
+
+            100% {
+                left: 100%;
+            }
+
+        }
+
+        .info-section {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+        .info-card {
+            padding: 25px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: 0.3s;
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+    <script>
+        window.addEventListener("load", function () {
+            setTimeout(function () {
+                document.querySelector('body').classList.add('loaded');
+            }, 300);
+        });
+    </script>
+    <!-- Favicon -->
+    <link rel="icon" href="{{url_for('static',filename='assets/img/brand/favicon.png')}}" type="image/png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="{{url_for('static',filename='assets/libs/@fortawesome/fontawesome-free/css/all.min.css')}}">
+    <!-- Quick CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/quick-website.css')}}" id="stylesheet">
+</head>
+
+<body>
+<!-- Preloader -->
+<div class="preloader">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="modal-cookies" data-backdrop="false"
+     aria-labelledby="modal-cookies" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-aside left-4 right-4 bottom-4">
+        <div class="modal-content bg-dark-dark">
+            <div class="modal-body">
+                <!-- Text -->
+                <p class="text-sm text-white mb-3">
+                    We use cookies so that our themes work for you. By using our website, you agree to our use of
+                    cookies.
+                </p>
+                <!-- Buttons -->
+                <a href="https://github.com/1128Prism/miss.git" class="btn btn-sm btn-white" target="_blank">Learn
+                    more</a>
+                <button type="button" class="btn btn-sm btn-primary mr-2" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand" href="/">
+            <img alt="Image placeholder" src="{{url_for('static',filename='assets/img/brand/dark.svg')}}"
+                 id="navbar-logo">
+        </a>
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapse -->
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mt-4 mt-lg-0 ml-auto">
+                <li class="nav-item ">
+                    <a class="nav-link" href="/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about" target="_blank">系统介绍</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/model" target="_blank">算法模型</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="/live" target="_blank">实时体验</a>
+                </li>
+            </ul>
+            <!-- Button -->
+            <a class="navbar-btn btn btn-sm btn-primary d-none d-lg-inline-block ml-3"
+               href="https://github.com/1128Prism/miss.git" target="_blank">
+                更多
+            </a>
+        </div>
+    </div>
+</nav>
+<!-- Main content -->
+<section class="slice py-7">
+    <div class="container">
+        <div class="row row-grid align-items-center">
+            <div class="col-12 col-md-7 col-lg-6 order-md-1">
+                <!-- Heading -->
+                <h1 class="display-4 text-center text-md-left mb-3">
+                    睑板腺图像
+                </h1>
+                <h1 class="display-4 text-center text-md-left mb-3">
+                    <strong class="text-primary"> 在线分割处理系统 </strong>
+                </h1>
+                <!-- Text -->
+                <p class="lead text-center text-md-left text-muted">
+                    基于深度学习的睑板腺自动分割系统，
+                    支持在线图像处理与实时分析，
+                    辅助MGD疾病诊断。
+                </p>
+                <ul class="text-muted">
+                    <li>✔ 高精度自动分割</li>
+                    <li>✔ 基于UNet框架的深度学习模型</li>
+                    <li>✔ 支持实时在线体验</li>
+                </ul>
+                <!-- Buttons -->
+                <div class="text-center text-md-left mt-5">
+                    <a href="/model" class="btn btn-primary btn-icon" target="_blank">
+                        <span class="btn-inner--text">查看示例</span>
+                    </a>
+                    <a href="/live" class="btn btn-neutral btn-icon d-none d-lg-inline-block"
+                       target="_blank">实时体验</a>
+                </div>
+            </div>
+            <div class="col-12 col-md-5 col-lg-6 order-md-2 pr-md-5 text-center">
+                <figure class="position-relative d-inline-block">
+                    <img
+                            alt="睑板腺原图"
+                            src="{{ url_for('static', filename='assets/img/pics/meibomian_original.png') }}"
+                            class="img-fluid mb-original"
+                    >
+                    <img
+                            alt="睑板腺分割掩码"
+                            src="{{ url_for('static', filename='assets/img/pics/meibomian_mask.png') }}"
+                            class="mb-mask position-absolute"
+                    >
+                    <div class="scan-line"></div>
+                </figure>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="info-section">
+    <div class="container">
+        <h2 class="text-center mb-5">
+            系统功能
+        </h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="info-card text-center">
+                    <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                    <h4>图像上传</h4>
+                    <p>
+                        支持睑板腺图像在线上传与自动处理
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card text-center">
+                    <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                    <h4>自动分割</h4>
+                    <p>
+                        基于深度学习实现睑板腺精准分割
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card text-center">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h4>结果分析</h4>
+                    <p>
+                        自动计算睑板腺缺失率
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<footer class="position-relative" id="footer-main">
+    <div class="footer pt-lg-1 fixed-bottom">
+        <!-- Footer -->
+        <div class="container pt-1">
+            <div class="row align-items-center justify-content-md-between pb-1">
+                <div class="col-md-3">
+                    <div class="copyright text-sm font-weight-bold text-center text-md-left">
+                        &copy; 2026 <a href="https://github.com/1128Prism/miss.git" class="font-weight-bold"
+                                       target="_blank">PrismIf</a>. All rights reserved
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Core JS  -->
+<script src="{{url_for('static', filename='assets/libs/jquery/dist/jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js')}}"></script>
+<script src="{{url_for('static', filename='assets/libs/svg-injector/dist/svg-injector.min.js')}}"></script>
+<!-- Quick JS -->
+<script src="{{url_for('static', filename='assets/js/quick-website.js')}}"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+        const maskImg = document.querySelector('.mb-mask');
+
+        setTimeout(() => {
+            maskImg.classList.add('active');
+        }, 1000);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="PrismIf">
+    <title>算法模型</title>
+    <!-- Preloader -->
+    <style>
+        @keyframes hidePreloader {
+            0% {
+                width: 100%;
+                height: 100%;
+            }
+            100% {
+                width: 0;
+                height: 0;
+            }
+        }
+
+        body > div.preloader {
+            position: fixed;
+            background: white;
+            width: 100%;
+            height: 100%;
+            z-index: 1071;
+            opacity: 0;
+            transition: opacity .5s ease;
+            overflow: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body:not(.loaded) > div.preloader {
+            opacity: 1;
+        }
+
+        body:not(.loaded) {
+            overflow: hidden;
+        }
+
+        body.loaded > div.preloader {
+            animation: hidePreloader .5s linear .5s forwards;
+        }
+
+        .results-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+
+        table {
+            width: 65%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            font-size: 13px;              /* 稍微再小一点 */
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+        }
+
+        th, td {
+            padding: 5px 8px;             /* ⭐关键：压缩行高 */
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            line-height: 1.2;             /* ⭐进一步压缩 */
+        }
+        thead th {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+
+        th {
+            font-weight: 600;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        thead th {
+            border-bottom: 1.5px solid #333;
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns:1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .result-img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .chart {
+            width: 100%;
+            height: 520px;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr; /* 左大右小（更合理） */
+            gap: 40px;
+            align-items: center;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        h2 {
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+    </style>
+    <script>
+        window.addEventListener("load", function () {
+            setTimeout(function () {
+                document.querySelector('body').classList.add('loaded');
+            }, 300);
+        });
+    </script>
+    <!-- Favicon -->
+    <link rel="icon" href="{{url_for('static',filename='assets/img/brand/favicon.png')}}" type="image/png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="{{url_for('static',filename='assets/libs/@fortawesome/fontawesome-free/css/all.min.css')}}">
+    <!-- Quick CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/quick-website.css')}}" id="stylesheet">
+</head>
+<body>
+<!-- Preloader -->
+<div class="preloader">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="modal-cookies" data-backdrop="false"
+     aria-labelledby="modal-cookies" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-aside left-4 right-4 bottom-4">
+        <div class="modal-content bg-dark-dark">
+            <div class="modal-body">
+                <!-- Text -->
+                <p class="text-sm text-white mb-3">
+                    We use cookies so that our themes work for you. By using our website, you agree to our use of
+                    cookies.
+                </p>
+                <!-- Buttons -->
+                <a href="https://github.com/1128Prism/miss.git" class="btn btn-sm btn-white" target="_blank">Learn
+                    more</a>
+                <button type="button" class="btn btn-sm btn-primary mr-2" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand" href="/">
+            <img alt="Image placeholder" src="{{url_for('static',filename='assets/img/brand/dark.svg')}}"
+                 id="navbar-logo">
+        </a>
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapse -->
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mt-4 mt-lg-0 ml-auto">
+                <li class="nav-item ">
+                    <a class="nav-link" href="/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about" target="_blank">系统介绍</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/model" target="_blank">算法模型</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="/live-index" target="_blank">实时体验</a>
+                </li>
+            </ul>
+            <!-- Button -->
+            <a class="navbar-btn btn btn-sm btn-primary d-none d-lg-inline-block ml-3"
+               href="https://github.com/1128Prism/miss.git" target="_blank">
+                更多
+            </a>
+            <!-- Mobile button -->
+            <div class="d-lg-none text-center">
+                <a href="/live" class="btn btn-block btn-sm btn-warning">Live</a>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container">
+
+    <!-- ========================= -->
+    <!-- 图表 -->
+    <!-- ========================= -->
+    <div class="card">
+        <h2>模型效果对比</h2>
+
+        <div class="chart-row">
+            <div id="lineChart" class="chart"></div>
+            <div id="barChart" class="chart"></div>
+
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- 表格 -->
+    <!-- ========================= -->
+    <div class="card">
+        <h2>评估指标表</h2>
+        <p style="text-align:center; font-size:13px; color:#666;">
+            <span style="color:#C44E52; font-weight:500;">红色</span>表示最优结果，
+            <span style="color:#55A868; font-weight:500;">绿色</span>表示次优结果
+        </p>
+        <table id="resultTable">
+            <thead>
+            <tr>
+                <th>模型</th>
+                <th>Dice (%)</th>
+                <th>IoU (%)</th>
+                <th>Precision (%)</th>
+                <th>Recall (%)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- JS 填充 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+</body>
+<!-- Footer -->
+<footer class="position-relative bg-section-secondary" id="footer-main">
+    <div class="footer pt-lg-1 fixed-bottom">
+        <!-- Footer -->
+        <div class="container pt-1">
+            <div class="row align-items-center justify-content-md-between pb-1">
+                <div class="col-md-3">
+                    <div class="copyright text-sm font-weight-bold text-center text-md-left">
+                        &copy; 2026 <a href="https://github.com/1128Prism/miss.git" class="font-weight-bold"
+                                       target="_blank">PrismIf</a>. All rights reserved
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Core JS  -->
+<script src="{{url_for('static', filename='assets/libs/jquery/dist/jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js')}}"></script>
+<script src="{{url_for('static', filename='assets/libs/svg-injector/dist/svg-injector.min.js')}}"></script>
+<!-- Quick JS -->
+<script src="{{url_for('static', filename='assets/js/quick-website.js')}}"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<script>
+    const metrics = ['Dice', 'IoU', 'Precision', 'Recall'];
+    const modelData = {
+        'UNet': [78.68, 67.25, 81.98, 82.56],
+        'UNet++': [77.32, 65.53, 80.21, 83.85],
+        'Attention UNet': [77.84, 64.91, 79.37, 82.74],
+        'TransUNet': [78.85, 67.42, 82.12, 83.51],
+        'SwinUNet': [76.78, 64.13, 74.95, 86.24],
+        'EMCAD': [79.63, 68.30, 81.96, 84.42],
+        'Ours': [79.76, 68.40, 82.05, 84.84]
+    };
+
+    // =========================
+    // 1️⃣ 绘制图表
+    // =========================
+    window.onload = function () {
+        const chart = echarts.init(document.getElementById('lineChart'));
+
+        const colors = [
+            '#4C72B0',  // 蓝
+            '#55A868',  // 绿
+            '#C44E52',  // 红
+            '#8172B2',  // 紫
+            '#CCB974',  // 卡其
+            '#64B5CD',  // 青
+            '#8C8C8C',  // 灰
+            '#E17C05',  // 橙
+            '#937860',  // 棕
+            '#000000'   // 黑（你的模型 nnUKAN）
+        ];
+
+        const series = Object.keys(modelData).map((name, idx) => ({
+            name: name,
+            type: 'line',
+            smooth: false,
+            symbol: 'circle',
+            symbolSize: 6,
+            lineStyle: {
+                width: name === 'Ours' ? 3 : 2
+            },
+
+            itemStyle: {
+                color: colors[idx]
+            },
+
+            emphasis: {
+                focus: 'series'
+            },
+
+            blur: {
+                lineStyle: {
+                    opacity: 0.2   // ⭐核心：其他线变淡
+                },
+                itemStyle: {
+                    opacity: 0.2
+                }
+            },
+            data: modelData[name]
+        }));
+
+        chart.setOption({
+            title: {
+                text: '不同模型分割性能对比',
+                left: 'center',
+                textStyle: {
+                    fontSize: 16,
+                    fontWeight: 'normal'
+                }
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                top: 40,
+                type: 'scroll',
+                textStyle: {
+                    fontSize: 12
+                },
+            },
+            grid: {
+                left: 60,
+                right: 40,
+                top: 90,     // ✅ 给标题和图例留空间
+                bottom: 50
+            },
+            xAxis: {
+                type: 'category',
+                data: metrics,
+                axisLine: {
+                    lineStyle: {color: '#333'}
+                },
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                min: 64,
+                max: 90,
+                axisLabel: {
+                    formatter: '{value}%',
+                    fontSize: 12
+                },
+                splitLine: {
+                    lineStyle: {
+                        type: 'dashed',
+                        color: '#ccc'
+                    }
+                }
+            },
+            series: Object.keys(modelData).map((name, idx) => ({
+                name: name,
+                type: 'line',
+                smooth: false,
+
+                lineStyle: {
+                    width: name === 'Ours' ? 3 : 2
+                },
+
+                itemStyle: {
+                    color: colors[idx],
+                    opacity: name === 'Ours' ? 1 : 0.7
+                },
+
+                label: {
+                    show: name === 'Ours',   // 只显示你的模型
+                    position: 'top',
+                    fontSize: 10
+                },
+
+                emphasis: {
+                    focus: 'series'
+                },
+
+                data: modelData[name]
+            }))
+        })
+
+        // =========================
+        // 生成表格（和图一致）
+        // =========================
+        const tbody = document.querySelector("#resultTable tbody");
+
+        // 找每一列最大值（用于高亮）
+        const maxValues = [0, 0, 0, 0];
+
+        Object.values(modelData).forEach(arr => {
+            arr.forEach((val, i) => {
+                if (val > maxValues[i]) maxValues[i] = val;
+            });
+        });
+
+        Object.keys(modelData).forEach(model => {
+            const row = document.createElement("tr");
+            const values = modelData[model];
+
+            row.innerHTML = `
+            <td>${model}</td>
+            <td>${values[0]}</td>
+            <td>${values[1]}</td>
+            <td>${values[2]}</td>
+            <td>${values[3]}</td>
+        `;
+
+            const top2Values = metrics.map((_, colIndex) => {
+                const col = Object.values(modelData).map(row => row[colIndex]);
+                const sorted = [...col].sort((a, b) => b - a);
+                return {
+                    max: sorted[0],
+                    second: sorted[1]
+                };
+            });
+
+            row.querySelectorAll("td").forEach((td, i) => {
+                if (i === 0) return;
+
+                const val = values[i - 1];
+                const { max, second } = top2Values[i - 1];
+
+                if (val === max) {
+                    td.style.color = "#C44E52";  // 第一名
+                    td.style.fontWeight = "bold";
+                } else if (val === second) {
+                    td.style.color = "#55A868";  // 第二名
+                    td.style.fontWeight = "bold";
+                }
+            });
+
+            tbody.appendChild(row);
+        });
+
+        const barChart = echarts.init(document.getElementById('barChart'));
+
+        const modelNames = Object.keys(modelData);
+        const diceValues = modelNames.map(name => modelData[name][0]);
+
+        const labelOption = {
+            show: true,
+            position: 'top',
+            formatter: '{c}%',
+            fontSize: 12
+        };
+
+        const sorted = modelNames
+            .map((name, i) => ({ name, value: diceValues[i] }))
+            .sort((a, b) => b.value - a.value);
+
+        const best = sorted[0].name;
+        const second = sorted[1].name;
+
+        barChart.setOption({
+            title: {
+                text: 'Dice 指标对比',
+                left: 'center',
+                textStyle: {
+                    fontSize: 15,
+                    fontWeight: 'normal'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: 60,
+                right: 20,
+                top: 90,
+                bottom: 80
+            },
+            xAxis: {
+                type: 'category',
+                data: modelNames,
+                axisLabel: {
+                    rotate: 30,
+                    fontSize: 11
+                }
+            },
+            yAxis: {
+                type: 'value',
+                min: 60,
+                max: 85,
+                axisLabel: {
+                    formatter: '{value}%'
+                }
+            },
+            series: [
+                {
+                    name: 'Dice',
+                    type: 'bar',
+                    barWidth: '55%',
+
+                    itemStyle: {
+                          color: function (params) {
+                            if (params.name === best) return '#C44E52';   // 第一名
+                            if (params.name === second) return '#55A868'; // 第二名
+                            return '#4C72B0';                             // 其他
+                        }
+                    },
+
+                    emphasis: {
+                        focus: 'self'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: function (params) {
+                            if (params.name === best) return params.value + '% 🥇';
+                            if (params.name === second) return params.value + '% 🥈';
+                            return params.value + '%';
+                        },
+                        fontSize: 11
+                    },
+
+                    data: diceValues
+                }
+            ],
+
+        });
+    };
+
+</script>
+</html>

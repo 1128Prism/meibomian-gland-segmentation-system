@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="PrismIf">
+    <title>实时体验</title>
+    <!-- Preloader -->
+    <style>
+        @keyframes hidePreloader {
+            0% {
+                width: 100%;
+                height: 100%;
+            }
+            100% {
+                width: 0;
+                height: 0;
+            }
+        }
+
+        body > div.preloader {
+            position: fixed;
+            background: white;
+            width: 100%;
+            height: 100%;
+            z-index: 1071;
+            opacity: 0;
+            transition: opacity .5s ease;
+            overflow: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body:not(.loaded) > div.preloader {
+            opacity: 1;
+        }
+
+        body:not(.loaded) {
+            overflow: hidden;
+        }
+
+        body.loaded > div.preloader {
+            animation: hidePreloader .5s linear .5s forwards;
+        }
+
+        .card {
+            border-radius: 14px;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        /* 图片更高级 */
+        img {
+            transition: 0.3s;
+        }
+
+        img:hover {
+            transform: scale(1.03);
+        }
+
+        .upload-box {
+            border: 2px dashed #4da3ff;
+            border-radius: 10px;
+            padding: 25px;
+            background: white;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            border-color: #007bff;
+            background: #f8fbff;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            padding: 10px 22px;
+            background: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .upload-btn:hover {
+            background: #0069d9;
+        }
+
+        .upload-btn input {
+            display: none;
+        }
+
+        .preview-img {
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+        }
+
+        .slider-main {
+            position: relative;
+            width: 100%;
+        }
+
+        .slide-main {
+            display: none;
+            width: 100%;
+        }
+
+        .slide-main.active {
+            display: block;
+        }
+
+
+        .file-list {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .preview-wrapper {
+            width: 100%;
+            height: 180px; /* ⭐ 控制整体高度（可调） */
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        /* 占位图填满 */
+        #placeholderImage {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 保持比例 */
+        }
+
+        .preview-overlay {
+            top: 0;
+            left: 0;
+            right: 0; /* 限制右边界 */
+            bottom: 0;
+
+            display: flex;
+            align-items: center;
+
+            padding: 10px;
+            overflow: hidden; /* 防止溢出 */
+            position: absolute;
+        }
+
+        /* 缩略图 */
+        .preview-thumb {
+            height: 120px;
+            width: auto;
+            border-radius: 8px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .legend-container {
+            display: inline-block;
+            text-align: left;
+        }
+
+        .legend-row {
+            display: flex;
+            gap: 2px;
+            justify-content: center;
+            margin-bottom:6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            width: 60px;
+        }
+
+        .legend-high {
+            display: flex;
+            align-items: center;
+            width: 75px; /* 固定宽度 → 全部对齐 */
+        }
+
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-right: 6px;
+            flex-shrink: 0; /* 👉 防止被压缩 */
+        }
+
+        #predictBtn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-bottom: 10px;
+        }
+
+    </style>
+    <script>
+        window.addEventListener("load", function () {
+            setTimeout(function () {
+                document.querySelector('body').classList.add('loaded');
+            }, 300);
+        });
+    </script>
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static',filename='assets/img/brand/favicon.png') }}" type="image/png'">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="{{ url_for('static',filename='assets/libs/@fortawesome/fontawesome-free/css/all.min.css') }}">
+    <!-- Quick CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/quick-website.css') }}" id="stylesheet">
+</head>
+<body class="bg-section-secondary">
+<!-- Preloader -->
+<div class="preloader">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="modal-cookies" data-backdrop="false"
+     aria-labelledby="modal-cookies" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-aside left-4 right-4 bottom-4">
+        <div class="modal-content bg-dark-dark">
+            <div class="modal-body">
+                <!-- Text -->
+                <p class="text-sm text-white mb-3">
+                    We use cookies so that our themes work for you. By using our website, you agree to our use of
+                    cookies.
+                </p>
+                <!-- Buttons -->
+                <a href="https://github.com/1128Prism/miss.git" class="btn btn-sm btn-white" target="_blank">Learn
+                    more</a>
+                <button type="button" class="btn btn-sm btn-primary mr-2" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand" href="/">
+            <img alt="Image placeholder" src="{{ url_for('static',filename='assets/img/brand/dark.svg') }}"
+                 id="navbar-logo">
+        </a>
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapse -->
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mt-4 mt-lg-0 ml-auto">
+                <li class="nav-item ">
+                    <a class="nav-link" href="/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about" target="_blank">系统介绍</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/model" target="_blank">算法模型</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="/live-index" target="_blank">实时体验</a>
+                </li>
+            </ul>
+            <!-- Button -->
+            <a class="navbar-btn btn btn-sm btn-primary d-none d-lg-inline-block ml-3"
+               href="https://github.com/1128Prism/miss.git" target="_blank">
+                更多
+            </a>
+        </div>
+    </div>
+</nav>
+<!-- Main content -->
+<section class="slice slice-lg pt-lg-4 pb-lg-4 bg-section-secondary">
+    <div class="container" style="max-width:1200px;">
+        <!-- 标题 -->
+        <div class="row mb-3 text-center justify-content-center">
+            <div class="col-lg-7">
+                <h2>
+                    实时 <strong class="text-primary">
+                    睑板腺分割系统
+                </strong>
+                </h2>
+                <p class="lead mt-3">
+                    上传睑板腺图像，选择模型参数，系统自动完成分割
+                </p>
+            </div>
+        </div>
+        <!-- 三模块结构 -->
+        <div class="row justify-content-center text-center">
+            <!-- ① 上传图像 -->
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="text-primary mb-3">
+                            ① 上传图像
+                        </h5>
+                        <p class="text-muted">
+                            选择本地睑板腺图像
+                        </p>
+                        <div class="upload-box text-center">
+                            <label class="upload-btn">
+                                <i class="fas fa-upload mr-2"></i>
+                                选择睑板腺图像
+                                <input type="file" name="image" id="fileInput" multiple>
+                            </label>
+                            <div id="fileName" class="mt-2 text-muted">
+                                未选择文件
+                            </div>
+                        </div>
+                        <!-- 显示上传图像 -->
+                        <div class="mt-2">
+                            <div class="preview-wrapper">
+
+                                <!-- 占位图 -->
+                                <img id="placeholderImage"
+                                     src="{{url_for('static', filename='assets/img/svg/illustration-3.svg')}}">
+
+                                <!-- 叠加缩略图 -->
+                                <div id="previewContainer" class="preview-overlay"></div>
+                            </div>
+                        </div>
+                        <!-- 文件名 -->
+                        <div id="fileNameList" class="file-list text-muted"></div>
+
+
+                    </div>
+                </div>
+            </div>
+            <!-- ② 参数选择 -->
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="text-primary mb-4">
+                            ② 参数设置
+                        </h5>
+                        <form id="predictForm" enctype="multipart/form-data">
+                            <!-- 模型选择 -->
+                            <div class="mb-3 text-left">
+                                <label>
+                                    模型与参数选择
+                                </label>
+                                <select name="model"
+                                        class="form-control">
+                                    <option value="model1">
+                                        nnUKan
+                                    </option>
+                                    <option value="model2">
+                                        TransKANet
+                                    </option>
+                                </select>
+                            </div>
+                            <!-- 数据集 -->
+                            <div class="mb-3 text-left">
+                                <label>
+                                    训练数据集
+                                </label>
+                                <select name="dataset"
+                                        class="form-control">
+                                    <option>
+                                        MGD1k Dataset
+                                    </option>
+                                    <option>
+                                        Private Dataset
+                                    </option>
+                                </select>
+                            </div>
+                            <!-- 阈值 -->
+                            <div class="mb-3 text-left">
+                                <label>
+                                    分割对象
+                                </label>
+                                <select name="threshold"
+                                        class="form-control">
+                                    <option>
+                                        睑板腺
+                                    </option>
+                                    <option>
+                                        结膜
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="button"
+                                    id="predictBtn"
+                                    class="btn btn-primary btn-block">
+                                开始处理
+                            </button>
+                            <div class="mt-3">
+                                <div style="height: 10px; background:#eee; border-radius:5px;">
+                                    <div id="progressBar" style="
+                                        height:100%;
+                                        width:0;
+                                        background:#4CAF50;
+                                        border-radius:5px;
+                                    "></div>
+                                </div>
+                                <p id="statusText" class="mt-2 text-muted"></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- ③ 输出结果 -->
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="text-primary mb-3">
+                            ③ 分割结果
+                        </h5>
+                        <div class="mt-3 text-left" style="max-width:420px; margin:auto;">
+                            <h6 class="mb-3">颜色标注说明：</h6>
+                            <div class="legend-container">
+
+                                <!-- 第一排 -->
+                                <div class="legend-row">
+                                    <div class="legend-item">
+                                        <span class="legend-box" style="background:rgba(0,0,255,0.6)"></span>
+                                        <span>萎缩</span>
+                                    </div>
+
+                                    <div class="legend-item">
+                                        <span class="legend-box" style="background:rgba(255,0,0,0.6)"></span>
+                                        <span>扭曲</span>
+                                    </div>
+
+                                    <div class="legend-item">
+                                        <span class="legend-box" style="background:rgba(255,255,0,0.6)"></span>
+                                        <span>分叉</span>
+                                    </div>
+                                    <div class="legend-high">
+                                        <span class="legend-box" style="background:rgba(255,0,255,0.6)"></span>
+                                        <span>高反射</span>
+                                    </div>
+
+                                    <div class="legend-item">
+                                        <span class="legend-box" style="background:rgba(0,255,0,0.6)"></span>
+                                        <span>正常</span>
+                                    </div>
+                                </div>
+
+                                <p class="text-muted small mt-2">
+                                    * 颜色标注基于自动分割与形态分析结果
+                                </p>
+                            </div>
+                            <div class="mt-4 mb-4">
+                                <div id="mainDisplay" class="text-center position-relative">
+
+                                    <!-- 左按钮 -->
+                                    <button id="prevBtn" class="nav-btn" style="left:2px;">◀</button>
+
+                                    <!-- 主图 -->
+                                    <img id="resPic"
+                                         src="{{url_for('static', filename='assets/img/svg/illustration-7.svg')}}"
+                                         class="img-fluid"
+                                         style="height:180px; width: 100%;object-fit:contain; border-radius:8px; z-index: 1;">
+
+                                    <!-- 右按钮 -->
+                                    <button id="nextBtn" class="nav-btn" style="right:2px;">▶</button>
+
+                                </div>
+
+                                <div class="mt-3 text-center">
+                                    <h4 id="mainGrade"></h4>
+                                    <p id="mainAnalysis"></p>
+                                </div>
+
+                            </div>
+                            <div class="text-center mt-3">
+                                <button id="downloadBtn" class="btn btn-success" type="button">
+                                    下载结果
+                                </button>
+                            </div>
+                        </div>
+                        <div id="resultContainer" class="slider mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Footer  -->
+<footer class="position-relative bg-section-secondary" id="footer-main">
+    <div class="pt-lg-1">
+        <div class="container pt-2">
+            <div class="row align-items-center justify-content-md-between pb-1">
+                <div class="col-md-3">
+                    <div class="copyright text-sm font-weight-bold text-center text-md-left">
+                        &copy; 2023 <a href="https://github.com/1128Prism/miss.git" class="font-weight-bold"
+                                       target="_blank">PrismIf</a>. All rights reserved
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Core JS  -->
+<script src="{{ url_for('static', filename='assets/libs/jquery/dist/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/libs/svg-injector/dist/svg-injector.min.js') }}"></script>
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="http://cdn.bootcss.com/jquery/3.5.1/jquery.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<!-- Quick JS -->
+<script src="{{ url_for('static', filename='assets/js/quick-website.js') }}"></script>
+<script>
+    const form = document.querySelector('form'); // 获取表单元素
+    document.getElementById("fileInput").addEventListener("change", function () {
+
+        const files = Array.from(this.files);
+        const container = document.getElementById("previewContainer");
+        const placeholder = document.getElementById("placeholderImage");
+        const fileName = document.getElementById("fileName");
+        const fileNameList = document.getElementById("fileNameList");
+
+        container.innerHTML = "";
+        fileNameList.innerHTML = "";
+
+        if (files.length === 0) {
+            placeholder.style.display = "block";
+            fileName.innerText = "未选择文件";
+            return;
+        }
+
+        // 显示数量（按钮下方）
+        fileName.innerText = "已选择 " + files.length + " 个文件";
+
+        // 隐藏占位图
+        placeholder.style.display = "none";
+
+        // =========================
+        // 控制叠加数量
+        // =========================
+        const MAX_SHOW = 5;
+        const displayFiles = files.slice(0, MAX_SHOW);
+
+        let offset = 0;
+        const step = 60;   // 每张向右移动距离（关键控制）
+
+        displayFiles.forEach((file, index) => {
+
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.className = "preview-thumb";
+
+            img.style.position = "absolute";
+            img.style.left = offset + "px";
+            img.style.zIndex = '10' + index;
+
+            container.appendChild(img);
+
+            offset += step;
+        });
+
+        // =========================
+        // 超出显示 +N
+        // =========================
+        if (files.length > MAX_SHOW) {
+
+            const more = document.createElement("div");
+            more.innerText = "+" + (files.length - MAX_SHOW);
+
+            more.style.position = "absolute";
+            more.style.right = "10px";
+            more.style.top = "10px";
+            more.style.background = "rgba(0,0,0,0.6)";
+            more.style.color = "#eee";
+            more.style.padding = "4px 8px";
+            more.style.borderRadius = "6px";
+            more.style.zIndex = 999;
+
+            container.appendChild(more);
+        }
+        const MAX_NAME = 3;
+
+        let names = files.slice(0, MAX_NAME).map(f => f.name);
+        if (files.length > MAX_NAME) {
+            names.push("... 共 " + files.length + " 个文件");
+        }
+        fileNameList.innerHTML = names.join("&nbsp;");
+    });
+
+    // 点击开始处理
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById("predictBtn").onclick = function () {
+            const btn = this;
+            // 防止重复点击（第一道锁）
+            if (btn.disabled) return;
+
+            const fileInput = document.getElementById("fileInput");
+            const files = fileInput.files;
+
+            if (files.length === 0) {
+                alert("请先上传图像");
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 正在处理...';
+            btn.classList.add("disabled");
+            const formData = new FormData();
+
+            for (let i = 0; i < files.length; i++) {
+                formData.append("images", files[i]);
+            }
+
+            const progressBar = document.getElementById("progressBar");
+            const statusText = document.getElementById("statusText");
+
+            let current = 0;
+            const interval = setInterval(() => {
+                if (current < files.length) {
+                    statusText.innerText =
+                        `${files[current].name} (${current + 1}/${files.length})`;
+                    progressBar.style.width =
+                        ((current + 1) / files.length * 100) + "%";
+                    current++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 6000);  // 可调速度
+
+            fetch("/predict_batch", {
+                method: "POST",
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    clearInterval(interval);
+                    progressBar.style.width = "100%";
+                    statusText.innerText = "处理完成";
+                    console.log('返回数据', data)
+                    updateMainDisplay(data);
+
+                    btn.disabled = false;
+                    btn.innerText = "开始处理";
+                    btn.classList.remove("disabled");
+                })
+                .catch(err => {
+                    clearInterval(interval);
+                    statusText.innerText = "处理失败";
+                    btn.disabled = false;
+                    btn.innerText = "开始处理";
+                    btn.classList.remove("disabled");
+                    console.error(err);
+                });
+        };
+
+        function updateMainDisplay(results) {
+            const img = document.getElementById("resPic");
+            const grade = document.getElementById("mainGrade");
+            const analysis = document.getElementById("mainAnalysis");
+            const downloadBtn = document.getElementById("downloadBtn");
+
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+
+            if (!results || results.length === 0) return;
+
+            let current = 0;
+
+            function show(index) {
+                const item = results[index];
+
+                img.style.opacity = 0;
+
+                setTimeout(() => {
+                    img.src = item.image + "?t=" + Date.now();
+                    img.style.opacity = 1;
+                }, 50);
+                // img.src = item.image + "?t=" + Date.now();
+                grade.innerText = "MGD等级: " + item.level;
+                analysis.innerText = item.analysis || "";
+
+                // 下载按钮绑定
+                downloadBtn.onclick = function () {
+                    window.open(`/download?file=${item.filename}`);
+                };
+            }
+
+            // =========================
+            // ✅ 单张情况
+            // =========================
+            if (results.length === 1) {
+                show(0);
+                // 隐藏按钮
+                prevBtn.style.display = "none";
+                nextBtn.style.display = "none";
+                return;
+            }
+
+            // =========================
+            // ✅ 多张情况
+            // =========================
+
+            show(current);
+
+            prevBtn.style.display = "block";
+            nextBtn.style.display = "block";
+
+            prevBtn.onclick = function () {
+                current = (current - 1 + results.length) % results.length;
+                show(current);
+            };
+
+            nextBtn.onclick = function () {
+                current = (current + 1) % results.length;
+                show(current);
+            };
+        }
+    })
+</script>
+</body>
+</html>

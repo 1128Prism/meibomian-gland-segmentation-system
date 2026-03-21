@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="PrismIf">
+    <title>算法模型</title>
+    <!-- Preloader -->
+    <style>
+        @keyframes hidePreloader {
+            0% {
+                width: 100%;
+                height: 100%;
+            }
+
+            100% {
+                width: 0;
+                height: 0;
+            }
+        }
+
+        body > div.preloader {
+            position: fixed;
+            background: white;
+            width: 100%;
+            height: 100%;
+            z-index: 1071;
+            opacity: 0;
+            transition: opacity .5s ease;
+            overflow: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body:not(.loaded) > div.preloader {
+            opacity: 1;
+        }
+
+        body:not(.loaded) {
+            overflow: hidden;
+        }
+
+        body.loaded > div.preloader {
+            animation: hidePreloader .5s linear .5s forwards;
+        }
+
+
+    </style>
+    <script>
+        window.addEventListener("load", function () {
+            setTimeout(function () {
+                document.querySelector('body').classList.add('loaded');
+            }, 300);
+        });
+    </script>
+    <!-- Favicon -->
+    <link rel="icon" href="{{url_for('static',filename='assets/img/brand/favicon.png')}}" type="image/png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="{{url_for('static',filename='assets/libs/@fortawesome/fontawesome-free/css/all.min.css')}}">
+    <!-- Quick CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/quick-website.css')}}" id="stylesheet">
+</head>
+
+<body class="bg-section-secondary">
+<!-- Preloader -->
+<div class="preloader">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="modal-cookies" data-backdrop="false"
+     aria-labelledby="modal-cookies" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-aside left-4 right-4 bottom-4">
+        <div class="modal-content bg-dark-dark">
+            <div class="modal-body">
+                <!-- Text -->
+                <p class="text-sm text-white mb-3">
+                    We use cookies so that our themes work for you. By using our website, you agree to our use of
+                    cookies.
+                </p>
+                <!-- Buttons -->
+                <a href="https://github.com/1128Prism/miss.git" class="btn btn-sm btn-white" target="_blank">Learn
+                    more</a>
+                <button type="button" class="btn btn-sm btn-primary mr-2" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand" href="/">
+            <img alt="Image placeholder" src="{{url_for('static',filename='assets/img/brand/dark.svg')}}"
+                 id="navbar-logo">
+        </a>
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapse -->
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mt-4 mt-lg-0 ml-auto">
+                <li class="nav-item ">
+                    <a class="nav-link" href="/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about" target="_blank">系统介绍</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/model" target="_blank">算法模型</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="/live-index" target="_blank">实时体验</a>
+                </li>
+            </ul>
+            <!-- Button -->
+            <a class="navbar-btn btn btn-sm btn-primary d-none d-lg-inline-block ml-3"
+               href="https://github.com/1128Prism/miss.git" target="_blank">
+                更多
+            </a>
+            <!-- Mobile button -->
+            <div class="d-lg-none text-center">
+                <a href="/live" class="btn btn-block btn-sm btn-warning">Live</a>
+            </div>
+        </div>
+    </div>
+</nav>
+<!-- Main content -->
+<section class="slice py-6 bg-section-secondary">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>
+                深度学习分割算法模型
+            </h2>
+            <p class="text-muted">
+                本系统采用两种深度学习模型进行睑板腺图像分割，
+                并对模型性能与其他模型效果进行对比分析。
+            </p>
+        </div>
+        <div class="row align-items-center mb-6">
+            <div class="col-md-6">
+                <h3>
+                    transUNet2D
+                </h3>
+                <p>
+                    模型A基于U-Net网络结构，
+                    用于实现睑板腺区域自动分割。
+                </p>
+
+                <ul>
+                    <li>Encoder-Decoder结构</li>
+                    <li>适用于医学图像分割</li>
+                    <li>支持Mask预测</li>
+                    <li>结构简单稳定</li>
+                </ul>
+                <a href="/transUnet2D"
+                   class="btn btn-primary mt-3">
+                    查看实验结果 →
+                </a>
+            </div>
+
+            <div class="col-md-6 text-center">
+                <img
+                        src="{{ url_for('static', filename='assets/img/pics/transUnet2D.png') }}"
+                        class="img-fluid"
+                        style="max-height:300px">
+            </div>
+        </div>
+        <div class="row align-items-center mb-6">
+            <div class="col-md-6 order-md-2">
+                <h3>
+                    nnUkan
+                </h3>
+
+                <p>
+                    模型B在U-Net基础上进行了改进，
+                    提高了睑板腺分割精度。
+                </p>
+
+                <ul>
+                    <li>增强特征提取能力</li>
+                    <li>提高分割精度</li>
+                    <li>减少误分割区域</li>
+                    <li>更稳定的训练过程</li>
+                </ul>
+
+                <a href="/nnUkan"
+                   class="btn btn-primary mt-3">
+                    查看实验结果 →
+                </a>
+            </div>
+
+            <div class="col-md-6 order-md-1 text-center">
+                <img
+                        src="{{ url_for('static', filename='assets/img/pics/nnUkan.png') }}"
+                        class="img-fluid"
+                        style="max-height:300px">
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Footer -->
+<footer class="position-relative bg-section-secondary" id="footer-main">
+    <div class="footer pt-lg-1 fixed-bottom">
+        <!-- Footer -->
+        <div class="container pt-1">
+            <div class="row align-items-center justify-content-md-between pb-1">
+                <div class="col-md-3">
+                    <div class="copyright text-sm font-weight-bold text-center text-md-left">
+                        &copy; 2026 <a href="https://github.com/1128Prism/miss.git" class="font-weight-bold"
+                                       target="_blank">PrismIf</a>. All rights reserved
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Core JS  -->
+<script src="{{url_for('static', filename='assets/libs/jquery/dist/jquery.min.js')}}"></script>
+<script src="{{url_for('static', filename='assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js')}}"></script>
+<script src="{{url_for('static', filename='assets/libs/svg-injector/dist/svg-injector.min.js')}}"></script>
+<!-- Quick JS -->
+<script src="{{url_for('static', filename='assets/js/quick-website.js')}}"></script>
+</body>
+</html>
